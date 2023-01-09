@@ -1,4 +1,4 @@
-﻿create database do_an
+create database do_an
 use do_an
 
 
@@ -8,7 +8,8 @@ drop database do_an
 --------------------TẠO BẢNG----------------------------------------------
 create table phong_may(
 	ma_phong int identity primary key,
-	so_may_trong int
+	so_may_trong int,
+	gia_1_gio_tren_phong float
 )
 
 create table may_tinh(
@@ -53,8 +54,6 @@ create table khach_hang(
 	ma_phong int,
 	foreign key (ma_may) references may_tinh(ma_may),
 	foreign key (ma_phong) references phong_may(ma_phong),
-	
-
 )
 
 create table cham_cong(
@@ -72,22 +71,24 @@ create table dich_vu(
 	gia_niem_yet float,
 )
 
-create table hoa_don(
-	so_hoa_don int identity primary key,
-	ma_tai_khoan int,
-	nguoi_so_huu nvarchar(50),
-	ngay_lap_hoa_don date,
-	foreign key (ma_tai_khoan) references tai_khoan(ma_tai_khoan)
-)
-
+--create table hoa_don(
+--	so_hoa_don int identity primary key,
+--	ma_tai_khoan int,
+--	nguoi_so_huu nvarchar(50),
+--	ngay_lap_hoa_don date,
+--	tien_net float,
+--	tien_dich_vu float,
+--	foreign key (ma_tai_khoan) references tai_khoan(ma_tai_khoan)
+--)
+--drop table hoa_don
 create table quan_li(
 	ma_may int,
 	ma_nhan_vien int,
 	ngay_kiem_tra date,
-	tinh_trang_kiem_tra nvarchar(500),
 	primary key(ma_may,ma_nhan_vien),
 	foreign key (ma_may) references may_tinh(ma_may),
 	foreign key (ma_nhan_vien) references nhan_vien(ma_nhan_vien),
+	
 )
 
 create table su_dung(
@@ -95,9 +96,11 @@ create table su_dung(
 	ma_tai_khoan int,
 	thoi_gian_bat_dau date,
 	thoi_gian_ket_thuc date,
-	primary key(ma_may,ma_tai_khoan),
+	ma_phong int,
+	primary key(ma_may,ma_tai_khoan,ma_phong),
 	foreign key (ma_may) references may_tinh(ma_may),
-	foreign key (ma_tai_khoan) references tai_khoan(ma_tai_khoan)
+	foreign key (ma_tai_khoan) references tai_khoan(ma_tai_khoan),
+	foreign key (ma_phong) references phong_may(ma_phong)
 )
 
 ALTER TABLE su_dung  ALTER COLUMN thoi_gian_bat_dau datetime
@@ -110,12 +113,18 @@ create table thuc_hien(
 	foreign key (ma_dich_vu) references dich_vu(ma_dich_vu),
 	foreign key (ma_nhan_vien) references nhan_vien(ma_nhan_vien)
 )
-
+create table hoa_don_chi_tiet(
+	so_hoa_don int primary key identity,
+	ma_tai_khoan int ,
+	tien_net_1 float,
+	tien_dich_vu_1 float,
+	foreign key (ma_tai_khoan) references tai_khoan(ma_tai_khoan)
+)
 create table lap(
 	ma_nhan_vien int,
 	so_hoa_don int,
 	primary key(ma_nhan_vien,so_hoa_don),
-	foreign key (so_hoa_don) references hoa_don(so_hoa_don),
+	foreign key (so_hoa_don) references hoa_don_chi_tiet(so_hoa_don),
 	foreign key (ma_nhan_vien) references nhan_vien(ma_nhan_vien)
 )
 
@@ -124,7 +133,7 @@ create table dich_vu_su_dung(
 	ma_dich_vu int,
 	so_luong int,
 	primary key(so_hoa_don,ma_dich_vu),
-	foreign key (so_hoa_don) references hoa_don(so_hoa_don),
+	foreign key (so_hoa_don) references hoa_don_chi_tiet(so_hoa_don),
 	foreign key (ma_dich_vu) references dich_vu(ma_dich_vu)
 )
 
@@ -134,7 +143,7 @@ create table dich_vu_su_dung(
 ------------ INSERT DỮ LIỆU--------------------------------------------
 
 insert into phong_may
-values (3),(3),(3)
+values (3,15000),(3,20000),(3,25000)
 select*from phong_may
 
 
@@ -184,10 +193,16 @@ begin
 		end
 end
 
-
+--(1,'nguyen_van_a','nguyenvana',100000,'03/12/2022'),
+--(2,'tran_ngoc_han','tranngochan',200000,'06/22/2022'),
+--(3,'tran_ngoc_linh','tranngoclinh',1000,'04/03/2021'),
+--(4,'le_nhat_minh','lenhatminh',100000,'03/12/2022'),
+--(5,'le_hoai_thuong','lehoaithuong',0,'12/12/2019'),
+--(6,'nguyen_van_tam','nguyenvantam',1200,'07/12/2021')
 
 insert into khach_hang
-values ('Nguyen Van Tam',9,2)
+values ('Nguyen Van Tam',9,3)
+
 --('Tran Ngoc Han',2,1),('Tran Ngoc Linh',3,1),('Tran Minh Long',4,1)
 		--('Le Nhat Minh',5,2),('Le Hoai Thuong',8,3),('Nguyen Van Tam',9,3)
 
@@ -263,13 +278,12 @@ exec hien_danh_sach_nhan_vien
 
 insert into tai_khoan
 values
-(2,'tran_ngoc_han','tranngochan',200000,'06/22/2022'),
 (1,'nguyen_van_a','nguyenvana',100000,'03/12/2022'),
 (2,'tran_ngoc_han','tranngochan',200000,'06/22/2022'),
 (3,'tran_ngoc_linh','tranngoclinh',1000,'04/03/2021'),
-(5,'le_nhat_minh','lenhatminh',100000,'03/12/2022'),
-(6,'le_hoai_thuong','lehoaithuong',0,'12/12/2019'),
-(7,'nguyen_van_tam','nguyenvantam',1200,'07/12/2021')
+(4,'le_nhat_minh','lenhatminh',100000,'03/12/2022'),
+(5,'le_hoai_thuong','lehoaithuong',0,'12/12/2019'),
+(6,'nguyen_van_tam','nguyenvantam',1200,'07/12/2021')
 select*from tai_khoan
 --------CHECK TAI KHOAN 1 KHACH HANG 1 TAI KHOAN
 
@@ -314,37 +328,37 @@ select * from dich_vu
 --select * from dich_vu 
 --where ten_dich_vu like N'%thẻ điện thoại%'
 
-insert into hoa_don
-values (4,'nguyen van a','07/01/2022'),
-		(2,'tran ngoc linh','05/01/2022')
-select * from hoa_don
-delete from hoa_don
+--insert into hoa_don
+--values (4,'nguyen van a','07/01/2022'),
+--		(2,'tran ngoc linh','05/01/2022')
+--select * from hoa_don
+--delete from hoa_don
 
-insert into quan_li
-values (4,4,'01/07/2022',N'Bình thường'),
-		(5,3,'06/01/2022',N'Hỏng màn hình')
+--insert into quan_li
+--values (4,4,'01/07/2022',N'Bình thường'),
+--		(5,3,'06/01/2022',N'Hỏng màn hình')
 
-select * from quan_li
+--select * from quan_li
 
-insert into su_dung
-values(1,'01/07/2022 02:17:00','01/07/2022 03:17:00')
-select*from su_dung
+--insert into su_dung
+--values(1,'01/07/2022 02:17:00','01/07/2022 03:17:00')
+--select*from su_dung
 
-insert into thuc_hien
-values (4,1),(4,2),(5,5),(5,6),(5,1)
-select * from thuc_hien
-delete from thuc_hien
+--insert into thuc_hien
+--values (4,1),(4,2),(5,5),(5,6),(5,1)
+--select * from thuc_hien
+--delete from thuc_hien
 
-insert into lap
-values (4,3),(4,2)
+--insert into lap
+--values (4,3),(4,2)
 
-select * from lap
-delete from lap
+--select * from lap
+--delete from lap
 
-insert into dich_vu_su_dung
-values(2,1,1),(3,2,2)
-select*from dich_vu_su_dung
-delete from dich_vu_su_dung
+--insert into dich_vu_su_dung
+--values(2,1,1),(3,2,2)
+--select*from dich_vu_su_dung
+--delete from dich_vu_su_dung
 
 
 insert into cham_cong
@@ -382,7 +396,7 @@ begin
 	select * from tai_khoan
 end
 
-exec sua_thong_tin_tai_khoan @ma_tai_khoan=6, @mat_khau='tran_duc_manhjjjj'
+exec sua_thong_tin_tai_khoan @ma_tai_khoan=1, @mat_khau='tran_duc_manhjjjj'
 
 
 ---------------------------TINH LUONG CHO NHAN VIEN--------------------------------------------------------
@@ -445,7 +459,7 @@ begin
 
 	select chi_tiet_bang_cong.ma_nhan_vien,(@ngay_1+@ngay_2+@ngay_3+@ngay_4+@ngay_5+@ngay_6+@ngay_7+@ngay_8+@ngay_9+@ngay_10+@ngay_11+@ngay_12+@ngay_13+@ngay_14+@ngay_15+@ngay_16+@ngay_17+@ngay_18+@ngay_19+@ngay_20+
 	@ngay_21+@ngay_22+@ngay_23+@ngay_24+@ngay_25+@ngay_26+@ngay_27+@ngay_28+@ngay_29+@ngay_30+@ngay_31) as tong_so_ngay,ten_nhan_vien,(@ngay_1+@ngay_2+@ngay_3+@ngay_4+@ngay_5+@ngay_6+@ngay_7+@ngay_8+@ngay_9+@ngay_10+@ngay_11+@ngay_12+@ngay_13+@ngay_14+@ngay_15+@ngay_16+@ngay_17+@ngay_18+@ngay_19+@ngay_20+
-	@ngay_21+@ngay_22+@ngay_23+@ngay_24+@ngay_25+@ngay_26+@ngay_27+@ngay_28+@ngay_29+@ngay_30+@ngay_31)*luong
+	@ngay_21+@ngay_22+@ngay_23+@ngay_24+@ngay_25+@ngay_26+@ngay_27+@ngay_28+@ngay_29+@ngay_30+@ngay_31)*luong as luong
 
 	from (chi_tiet_bang_cong join nhan_vien on chi_tiet_bang_cong.ma_nhan_vien = nhan_vien.ma_nhan_vien)
 			join ca_lam on nhan_vien.ma_ca=ca_lam.ma_ca
@@ -456,3 +470,156 @@ values (4,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1)
 select * from chi_tiet_bang_cong
 
 
+----------------------TIM KIEM KHACH HANG THEO TEN--------------------
+create or alter proc tim_kiem
+@ten nvarchar(50)
+as
+begin 
+	select * from 
+	khach_hang join tai_khoan on khach_hang.ma_khach_hang=tai_khoan.ma_khach_hang
+	where khach_hang.ten_khach_hang=@ten
+end
+
+exec tim_kiem @ten='nguyen van a'
+
+
+
+
+-----------------HOA DON------------------
+
+---tính tiền net
+
+
+drop table hoa_don_chi_tiet
+
+
+create or alter trigger trig_tinh_tien_net
+on su_dung
+instead of insert 
+as
+begin
+	declare @st datetime = (select thoi_gian_bat_dau from inserted)
+	declare @end datetime = (select thoi_gian_ket_thuc from inserted)
+	declare @ma_phong int = (select ma_phong from inserted)
+	declare @ma_may int = (select ma_may from inserted)
+	declare @ma_tai_khoan int=(select ma_tai_khoan from inserted)
+
+	insert into su_dung
+	values(@ma_may,@ma_tai_khoan,@st,@end,@ma_phong)
+	
+	
+	
+	declare @so_tien_choi float = (select
+		ceiling(datediff(minute,@st,@end)/60.0) * gia_1_gio_tren_phong
+	from ((su_dung join phong_may on su_dung.ma_phong=phong_may.ma_phong)
+			join tai_khoan on tai_khoan.ma_tai_khoan=su_dung.ma_tai_khoan
+			join khach_hang on su_dung.ma_may=khach_hang.ma_may)
+	where tai_khoan.ma_tai_khoan = @ma_tai_khoan)
+	insert into hoa_don_chi_tiet
+	values(@ma_tai_khoan,@so_tien_choi,0)
+	
+end
+
+
+insert into su_dung
+values(1,1,'09/01/2023 09:00:00','09/01/2023 09:15:00',1)
+
+insert into su_dung
+values(9,6,'09/01/2023 09:00:00','09/01/2023 09:15:00',3)
+
+
+select * from khach_hang
+select * from phong_may
+select * from su_dung
+select * from hoa_don_chi_tiet
+delete from hoa_don_chi_tiet
+delete from su_dung
+
+
+---------tính tiền dịch vụ----
+
+create or alter trigger trig_tinh_dich_vu
+on dich_vu_su_dung
+instead of insert 
+as
+begin
+	declare @so_hoa_don int = (select so_hoa_don from inserted)
+	declare @ma_dich_vu int = (select ma_dich_vu from inserted)
+	declare @so_luong int = (select so_luong from inserted)
+
+	insert into dich_vu_su_dung
+	values(@so_hoa_don,@ma_dich_vu,@so_luong)
+	
+	select *,(gia_niem_yet*so_luong) as tong_tien
+	from dich_vu_su_dung join dich_vu on dich_vu_su_dung.ma_dich_vu=dich_vu.ma_dich_vu
+		where dich_vu_su_dung.so_hoa_don=@so_hoa_don
+
+end
+
+insert into dich_vu_su_dung
+values (2,3,3)
+---------lấy ra các dịch vụ đã mua------------------------------------------------------------------------------------------------------------------------
+select *,dich_vu.gia_niem_yet*dich_vu_su_dung.so_luong as tong_tien_dich_vu from dich_vu_su_dung join dich_vu on dich_vu_su_dung.ma_dich_vu=dich_vu.ma_dich_vu
+where so_hoa_don=2
+--------update tien dich vu-------------------------------------------------------------------------------------------------------------------------------
+
+--select sum(dich_vu.gia_niem_yet*dich_vu_su_dung.so_luong) as tong_tien_dich_vu from dich_vu_su_dung join dich_vu on dich_vu_su_dung.ma_dich_vu=dich_vu.ma_dich_vu
+--where so_hoa_don=2
+--group by dich_vu_su_dung.so_hoa_don
+
+
+
+
+select * from hoa_don_chi_tiet
+
+create or alter proc up_tien_dich_vu
+@so_hoa_don int
+as
+begin
+	update hoa_don_chi_tiet
+	set
+	tien_dich_vu_1=(select sum(dich_vu.gia_niem_yet*dich_vu_su_dung.so_luong) as tong_tien_dich_vu 
+	from (dich_vu_su_dung join dich_vu on dich_vu_su_dung.ma_dich_vu=dich_vu.ma_dich_vu)
+		join hoa_don_chi_tiet on hoa_don_chi_tiet.so_hoa_don=dich_vu_su_dung.so_hoa_don
+	where dich_vu_su_dung.so_hoa_don = @so_hoa_don
+	group by dich_vu_su_dung.so_hoa_don
+	)
+	where so_hoa_don=@so_hoa_don
+end
+
+exec up_tien_dich_vu @so_hoa_don = 2
+
+insert into dich_vu_su_dung
+values (2,1,1)
+
+----------------------------------------TINH TONG HOA DON-----------------------------------------
+
+create or alter proc tinh_tong_hoa_don
+
+as 
+begin
+	select*,(hoa_don_chi_tiet.tien_net_1+hoa_don_chi_tiet.tien_dich_vu_1) as tong_tien_hoa_don from hoa_don_chi_tiet
+
+end
+
+exec tinh_tong_hoa_don
+
+--------------------------------------in hoa don theo ma hoa don----------------------
+create or alter proc hien_hoa_don
+@so_hoa_don int
+as 
+begin
+	select hoa_don_chi_tiet.so_hoa_don,tai_khoan.ma_tai_khoan,khach_hang.ma_khach_hang,ten_khach_hang,ma_may,ma_phong,
+	hoa_don_chi_tiet.tien_net_1,hoa_don_chi_tiet.tien_dich_vu_1,(hoa_don_chi_tiet.tien_net_1+hoa_don_chi_tiet.tien_dich_vu_1) as tong_tien_hoa_don 
+	from hoa_don_chi_tiet join tai_khoan on hoa_don_chi_tiet.ma_tai_khoan=tai_khoan.ma_tai_khoan
+						join khach_hang on tai_khoan.ma_khach_hang =khach_hang.ma_khach_hang
+	where hoa_don_chi_tiet.so_hoa_don=@so_hoa_don
+
+	select *,dich_vu.gia_niem_yet*dich_vu_su_dung.so_luong as tong_tien_dich_vu 
+	from dich_vu_su_dung join dich_vu on dich_vu_su_dung.ma_dich_vu=dich_vu.ma_dich_vu
+						
+		
+	where so_hoa_don=@so_hoa_don
+end
+
+exec hien_hoa_don @so_hoa_don = 1
