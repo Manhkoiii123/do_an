@@ -118,6 +118,7 @@ create table hoa_don_chi_tiet(
 	ma_tai_khoan int ,
 	tien_net_1 float,
 	tien_dich_vu_1 float,
+	tien_nap_vao_tai_khoan float,
 	foreign key (ma_tai_khoan) references tai_khoan(ma_tai_khoan)
 )
 create table lap(
@@ -201,7 +202,7 @@ end
 --(6,'nguyen_van_tam','nguyenvantam',1200,'07/12/2021')
 
 insert into khach_hang
-values ('Nguyen Van Tam',9,3)
+values('Nguyen Van Tam',9,3)
 
 --('Tran Ngoc Han',2,1),('Tran Ngoc Linh',3,1),('Tran Minh Long',4,1)
 		--('Le Nhat Minh',5,2),('Le Hoai Thuong',8,3),('Nguyen Van Tam',9,3)
@@ -502,7 +503,7 @@ begin
 	declare @end datetime = (select thoi_gian_ket_thuc from inserted)
 	declare @ma_phong int = (select ma_phong from inserted)
 	declare @ma_may int = (select ma_may from inserted)
-	declare @ma_tai_khoan int=(select ma_tai_khoan from inserted)
+	declare @ma_tai_khoan int=(select ma_tai_khoan from inserted) 
 
 	insert into su_dung
 	values(@ma_may,@ma_tai_khoan,@st,@end,@ma_phong)
@@ -516,7 +517,7 @@ begin
 			join khach_hang on su_dung.ma_may=khach_hang.ma_may)
 	where tai_khoan.ma_tai_khoan = @ma_tai_khoan)
 	insert into hoa_don_chi_tiet
-	values(@ma_tai_khoan,@so_tien_choi,0)
+	values(@ma_tai_khoan,@so_tien_choi,0,0)
 	
 end
 
@@ -598,7 +599,7 @@ create or alter proc tinh_tong_hoa_don
 
 as 
 begin
-	select*,(hoa_don_chi_tiet.tien_net_1+hoa_don_chi_tiet.tien_dich_vu_1) as tong_tien_hoa_don from hoa_don_chi_tiet
+	select*,(hoa_don_chi_tiet.tien_net_1+hoa_don_chi_tiet.tien_dich_vu_1+hoa_don_chi_tiet.tien_nap_vao_tai_khoan) as tong_tien_hoa_don from hoa_don_chi_tiet
 
 end
 
@@ -610,7 +611,7 @@ create or alter proc hien_hoa_don
 as 
 begin
 	select hoa_don_chi_tiet.so_hoa_don,tai_khoan.ma_tai_khoan,khach_hang.ma_khach_hang,ten_khach_hang,ma_may,ma_phong,
-	hoa_don_chi_tiet.tien_net_1,hoa_don_chi_tiet.tien_dich_vu_1,(hoa_don_chi_tiet.tien_net_1+hoa_don_chi_tiet.tien_dich_vu_1) as tong_tien_hoa_don 
+	hoa_don_chi_tiet.tien_net_1,hoa_don_chi_tiet.tien_dich_vu_1,hoa_don_chi_tiet.tien_nap_vao_tai_khoan,(hoa_don_chi_tiet.tien_net_1+hoa_don_chi_tiet.tien_dich_vu_1) as tong_tien_khach_hang_tra 
 	from hoa_don_chi_tiet join tai_khoan on hoa_don_chi_tiet.ma_tai_khoan=tai_khoan.ma_tai_khoan
 						join khach_hang on tai_khoan.ma_khach_hang =khach_hang.ma_khach_hang
 	where hoa_don_chi_tiet.so_hoa_don=@so_hoa_don
@@ -618,8 +619,72 @@ begin
 	select *,dich_vu.gia_niem_yet*dich_vu_su_dung.so_luong as tong_tien_dich_vu 
 	from dich_vu_su_dung join dich_vu on dich_vu_su_dung.ma_dich_vu=dich_vu.ma_dich_vu
 						
-		
+	select hoa_don_chi_tiet.so_hoa_don,nap_the.ma_tai_khoan,nap_the.so_tien_nap
+	from nap_the join hoa_don_chi_tiet on nap_the.ma_tai_khoan=hoa_don_chi_tiet.ma_tai_khoan
 	where so_hoa_don=@so_hoa_don
 end
 
-exec hien_hoa_don @so_hoa_don = 1
+exec hien_hoa_don @so_hoa_don = 2
+
+
+----------------------------------------SO DU TAI KHOAN-------------------------------------------
+---------------nap the-----
+create table nap_the(
+	ma_tai_khoan int,
+	so_tien_nap float,
+	ngay_nap date,
+	foreign key (ma_tai_khoan) references tai_khoan(ma_tai_khoan)
+)
+drop table nap_the
+create or alter trigger nap_tien_vao_tai_khoan
+on nap_the
+instead of insert 
+as
+begin 
+	declare @nap_vao float =(select so_tien_nap from inserted)
+	declare @ma_tai_khoan int =(select ma_tai_khoan from inserted)
+	declare @ngay_nap date =(select ngay_nap from inserted)
+	insert into nap_the
+	values(@ma_tai_khoan,@nap_vao,@ngay_nap)
+	update tai_khoan
+	set 
+	so_du = so_du + @nap_vao
+	where ma_tai_khoan=@ma_tai_khoan
+	update hoa_don_chi_tiet
+	set
+	tien_nap_vao_tai_khoan=@nap_vao
+	where ma_tai_khoan=@ma_tai_khoan
+	
+end
+
+select*from tai_khoan
+select * from nap_the
+insert into nap_the
+values(6,10000000,'01/10/2023')
+
+
+--------------tra tien cho cái tiền net và tiền dịch vụ---------
+select * from hoa_don_chi_tiet
+select * from tai_khoan
+create or alter proc tra_tien
+@so_hoa_don int
+as
+begin
+	declare @so_du_tai_khoan float = (select so_du from tai_khoan join hoa_don_chi_tiet on tai_khoan.ma_tai_khoan=hoa_don_chi_tiet.ma_tai_khoan where  hoa_don_chi_tiet.so_hoa_don=@so_hoa_don)
+	declare @so_tien_tra float =(select (tien_net_1+tien_dich_vu_1) from hoa_don_chi_tiet where hoa_don_chi_tiet.so_hoa_don=@so_hoa_don)
+	declare @ma_tai_khoan int = (select ma_tai_khoan from hoa_don_chi_tiet where hoa_don_chi_tiet.so_hoa_don=@so_hoa_don)
+	if (@so_du_tai_khoan>=@so_tien_tra)
+		begin
+			update tai_khoan
+			set 
+			so_du=so_du-@so_tien_tra
+			where tai_khoan.ma_tai_khoan = @ma_tai_khoan
+		end
+	else 
+		begin
+			print('so du  tai khoan ko du de tra phi')
+		end
+
+end
+
+exec tra_tien @so_hoa_don = 2
