@@ -124,7 +124,7 @@ create table hoa_don_chi_tiet(
 create table lap(
 	ma_nhan_vien int,
 	so_hoa_don int,
-	primary key(ma_nhan_vien,so_hoa_don),
+	ngay_lap_hoa_don date,
 	foreign key (so_hoa_don) references hoa_don_chi_tiet(so_hoa_don),
 	foreign key (ma_nhan_vien) references nhan_vien(ma_nhan_vien)
 )
@@ -202,9 +202,20 @@ end
 --(6,'nguyen_van_tam','nguyenvantam',1200,'07/12/2021')
 
 insert into khach_hang
+values('Nguyen Van a',1,1)
+insert into khach_hang
+values('Tran Ngoc Han',2,1)
+insert into khach_hang
+values('Tran Ngoc Linh',3,1)
+insert into khach_hang
+values('Tran Minh Long',4,1)
+insert into khach_hang
+values('Le Nhat Minh',5,2)
+insert into khach_hang
+values('Le Hoai Thuong',8,3)
+insert into khach_hang
 values('Nguyen Van Tam',9,3)
-
---('Tran Ngoc Han',2,1),('Tran Ngoc Linh',3,1),('Tran Minh Long',4,1)
+--,('Tran Ngoc Linh',3,1),('Tran Minh Long',4,1)
 		--('Le Nhat Minh',5,2),('Le Hoai Thuong',8,3),('Nguyen Van Tam',9,3)
 
 create or alter procedure hien_danh_sach_khach_hang
@@ -312,17 +323,36 @@ end
 insert into dich_vu
 values
 ('coca',10000),
-('pepsi',12000),
-('sting',20000),
-(N'nước lọc',5000),
-(N'mì tôm',10000),
-(N'xúc xích',7000),
-(N'thẻ điện thoại 10000',10000),
-(N'thẻ điện thoại 20000',20000),
-(N'thẻ điện thoại 30000',30000),
-(N'thẻ điện thoại 40000',40000),
-(N'thẻ điện thoại 50000',50000),
-(N'thẻ điện thoại 100000',100000)
+('SevenUp',10000),
+('Revive',15000),
+(N'Sting',15000),
+(N'Red Bull',15000),
+(N'Nước suối',20000),
+(N'Nuti',15000),
+(N'247',15000),
+(N'Cơm chiên bò',26000),
+(N'Cơm chiên đùi gà',25000),
+(N'Cơm chiên trứng',18000),
+(N'Nui xào bò',25000),
+(N'Nui xào trứng',20000),
+(N'Mì gà tần',30000),
+(N'Mì xào bò',25000),
+(N'Mì xào trứng',18000),
+(N'Mì nước trứng',18000),
+(N'Cá viên chiên',15000),
+(N'Trứng thêm',6000),
+(N'Mì xào thêm',6000),
+(N'Mì nước thêm',6000),
+(N'Cơm chiên thêm',6000),
+(N'Cơm trứng thêm',6000),
+(N'Thẻ game 1',20000),
+(N'Thẻ game 2',50000),
+(N'Thẻ game 3',100000),
+(N'Thẻ game 4',500000),
+(N'Thẻ điện thoại 1',20000),
+(N'Thẻ điện thoại 2',50000),
+(N'Thẻ điện thoại 3',100000),
+(N'Thẻ điện thoại 4',500000)
 select * from dich_vu
 
 
@@ -528,7 +558,13 @@ values(1,1,'09/01/2023 09:00:00','09/01/2023 09:15:00',1)
 insert into su_dung
 values(9,6,'09/01/2023 09:00:00','09/01/2023 09:15:00',3)
 
+insert into su_dung
+values(2,2,'09/01/2023 09:00:00','09/01/2023 09:15:00',1)
 
+insert into su_dung
+values(3,3,'09/01/2023 08:00:00','09/01/2023 09:15:00',1)
+insert into su_dung
+values(5,4,'09/01/2023 08:00:00','09/01/2023 09:15:00',2)
 select * from khach_hang
 select * from phong_may
 select * from su_dung
@@ -558,7 +594,15 @@ begin
 end
 
 insert into dich_vu_su_dung
+values (1,3,3)
+insert into dich_vu_su_dung
+values (1,2,2)
+insert into dich_vu_su_dung
+values (1,4,5)
+insert into dich_vu_su_dung
 values (2,3,3)
+insert into dich_vu_su_dung
+values (2,5,3)
 ---------lấy ra các dịch vụ đã mua------------------------------------------------------------------------------------------------------------------------
 select *,dich_vu.gia_niem_yet*dich_vu_su_dung.so_luong as tong_tien_dich_vu from dich_vu_su_dung join dich_vu on dich_vu_su_dung.ma_dich_vu=dich_vu.ma_dich_vu
 where so_hoa_don=2
@@ -588,8 +632,8 @@ begin
 	where so_hoa_don=@so_hoa_don
 end
 
-exec up_tien_dich_vu @so_hoa_don = 2
-
+exec up_tien_dich_vu @so_hoa_don = 4
+select*from hoa_don_chi_tiet
 insert into dich_vu_su_dung
 values (2,1,1)
 
@@ -605,7 +649,7 @@ end
 
 exec tinh_tong_hoa_don
 
---------------------------------------in hoa don theo ma hoa don----------------------
+--------------------------------------in hoa don theo ma hoa don (chay sau cai nap the)----------------------
 create or alter proc hien_hoa_don
 @so_hoa_don int
 as 
@@ -618,6 +662,7 @@ begin
 
 	select *,dich_vu.gia_niem_yet*dich_vu_su_dung.so_luong as tong_tien_dich_vu 
 	from dich_vu_su_dung join dich_vu on dich_vu_su_dung.ma_dich_vu=dich_vu.ma_dich_vu
+	where so_hoa_don=@so_hoa_don
 						
 	select hoa_don_chi_tiet.so_hoa_don,nap_the.ma_tai_khoan,nap_the.so_tien_nap
 	from nap_the join hoa_don_chi_tiet on nap_the.ma_tai_khoan=hoa_don_chi_tiet.ma_tai_khoan
@@ -660,7 +705,7 @@ end
 select*from tai_khoan
 select * from nap_the
 insert into nap_the
-values(6,10000000,'01/10/2023')
+values(6,10000000,'02/10/2023')
 
 
 --------------tra tien cho cái tiền net và tiền dịch vụ---------
@@ -688,3 +733,80 @@ begin
 end
 
 exec tra_tien @so_hoa_don = 2
+
+
+
+-------------------------nhan vien lap hoa don--------------------
+
+select * from nhan_vien
+select * from lap
+select*from hoa_don_chi_tiet
+
+create or alter trigger nhan_vien_lap_hoa_don
+on lap
+instead of insert 
+as
+begin
+	declare @ma_nv int = (select ma_nhan_vien from inserted)
+	declare @so_hoa_don int = (select so_hoa_don from inserted)
+	declare @ngay_lap_hoa_don date = (select ngay_lap_hoa_don from inserted)
+	insert into lap
+	values (@ma_nv,@so_hoa_don,@ngay_lap_hoa_don)
+	select lap.ma_nhan_vien,lap.so_hoa_don,lap.ngay_lap_hoa_don,nhan_vien.ten_nhan_vien,hoa_don_chi_tiet.tien_net_1,hoa_don_chi_tiet.tien_dich_vu_1,hoa_don_chi_tiet.tien_nap_vao_tai_khoan from lap join nhan_vien on lap.ma_nhan_vien=nhan_vien.ma_nhan_vien
+						join hoa_don_chi_tiet on lap.so_hoa_don = hoa_don_chi_tiet.so_hoa_don
+end
+
+insert into lap
+values (4,6,'04/10/2023')
+select*from lap
+
+-----------------------tinh tong doanh thu trong ngay--------------------
+select*from nap_the
+select * from lap
+select * from hoa_don_chi_tiet
+create or alter proc tong_doanh_thu
+@ngay_tinh date
+as
+begin
+	declare @tien_net_1 float = (select sum(tien_net_1) from hoa_don_chi_tiet join lap on hoa_don_chi_tiet.so_hoa_don=lap.so_hoa_don where lap.ngay_lap_hoa_don=@ngay_tinh)
+	declare @tien_dich_vu_1 float = (select sum(tien_dich_vu_1) from hoa_don_chi_tiet join lap on hoa_don_chi_tiet.so_hoa_don=lap.so_hoa_don where lap.ngay_lap_hoa_don=@ngay_tinh)
+	declare @tien_nap_the float =(select sum(so_tien_nap) from nap_the where nap_the.ngay_nap = @ngay_tinh)
+	declare @tong_tien float = 0;
+	
+	if @tien_net_1 = NULL
+		begin
+			set @tong_tien=@tong_tien+0
+		end
+	else
+		begin
+			set @tong_tien=@tong_tien+@tien_net_1
+		end
+
+	if @tien_dich_vu_1 = NULL
+		begin
+			set @tong_tien = @tong_tien
+		end
+	else
+		begin
+			set @tong_tien=@tong_tien+@tien_dich_vu_1
+		end
+
+	--if @tien_nap_the = NULL
+	--	begin
+	--		set @tong_tien=@tong_tien+0
+	--	end
+	--else
+	--	begin
+	--		set @tong_tien=@tong_tien+@tien_nap_the
+	--	end
+
+	select @tong_tien as tong_tien
+	
+end
+
+exec tong_doanh_thu @ngay_tinh = '03/10/2023'
+
+select sum(tien_net_1) from hoa_don_chi_tiet join lap on hoa_don_chi_tiet.so_hoa_don=lap.so_hoa_don where lap.ngay_lap_hoa_don='02/10/2023'
+select sum(tien_dich_vu_1) from hoa_don_chi_tiet join lap on hoa_don_chi_tiet.so_hoa_don=lap.so_hoa_don where lap.ngay_lap_hoa_don='02/10/2023'
+select sum(so_tien_nap) from nap_the where nap_the.ngay_nap = '02/10/2023'
+select*from  hoa_don_chi_tiet join lap on hoa_don_chi_tiet.so_hoa_don=lap.so_hoa_don where lap.ngay_lap_hoa_don='02/10/2023'
