@@ -59,7 +59,6 @@ create table khach_hang(
 create table cham_cong(
 	ma_cham_cong int identity primary key,
 	ma_nhan_vien int,
-	ten_ca nvarchar(50),
 	ma_ca int,
 	foreign key (ma_nhan_vien) references nhan_vien(ma_nhan_vien),
 	foreign key (ma_ca) references ca_lam(ma_ca)
@@ -71,25 +70,18 @@ create table dich_vu(
 	gia_niem_yet float,
 )
 
---create table hoa_don(
---	so_hoa_don int identity primary key,
---	ma_tai_khoan int,
---	nguoi_so_huu nvarchar(50),
---	ngay_lap_hoa_don date,
---	tien_net float,
---	tien_dich_vu float,
---	foreign key (ma_tai_khoan) references tai_khoan(ma_tai_khoan)
---)
---drop table hoa_don
+
+
 create table quan_li(
 	ma_may int,
 	ma_nhan_vien int,
 	ngay_kiem_tra date,
+	tinh_trang_may nvarchar(500)
 	primary key(ma_may,ma_nhan_vien),
 	foreign key (ma_may) references may_tinh(ma_may),
-	foreign key (ma_nhan_vien) references nhan_vien(ma_nhan_vien),
-	
+	foreign key (ma_nhan_vien) references nhan_vien(ma_nhan_vien)
 )
+
 
 create table su_dung(
 	ma_may int,
@@ -164,6 +156,8 @@ select * from may_tinh
 insert into ca_lam
 values (N'Sáng',15000),(N'chiều',15000),(N'tối',15000),(N'đêm',20000)
 select * from ca_lam
+
+
 
 
 ----------------khi them khach hang vao dung trigger de tinh so may con hay het-----------------------------------------
@@ -298,7 +292,7 @@ values
 (6,'nguyen_van_tam','nguyenvantam',1200,'07/12/2021')
 select*from tai_khoan
 --------CHECK TAI KHOAN 1 KHACH HANG 1 TAI KHOAN
-
+select * from khach_hang
 create or alter trigger trig_tai_khoan
 on tai_khoan
 instead of insert
@@ -319,7 +313,9 @@ begin
 			values(@ma_khach_hang,@ten_dang_nhap,@mat_khau,@so_du,@ngay_lap)
 		end
 end
-
+insert into tai_khoan
+values(1,'tranducmanh','12123',100,'01/01/2023')
+select * from tai_khoan
 insert into dich_vu
 values
 ('coca',10000),
@@ -356,46 +352,9 @@ values
 select * from dich_vu
 
 
---select * from dich_vu 
---where ten_dich_vu like N'%thẻ điện thoại%'
-
---insert into hoa_don
---values (4,'nguyen van a','07/01/2022'),
---		(2,'tran ngoc linh','05/01/2022')
---select * from hoa_don
---delete from hoa_don
-
---insert into quan_li
---values (4,4,'01/07/2022',N'Bình thường'),
---		(5,3,'06/01/2022',N'Hỏng màn hình')
-
---select * from quan_li
-
---insert into su_dung
---values(1,'01/07/2022 02:17:00','01/07/2022 03:17:00')
---select*from su_dung
-
---insert into thuc_hien
---values (4,1),(4,2),(5,5),(5,6),(5,1)
---select * from thuc_hien
---delete from thuc_hien
-
---insert into lap
---values (4,3),(4,2)
-
---select * from lap
---delete from lap
-
---insert into dich_vu_su_dung
---values(2,1,1),(3,2,2)
---select*from dich_vu_su_dung
---delete from dich_vu_su_dung
 
 
-insert into cham_cong
-values (1,N'sáng',1),(2,N'chiều',2),(3,N'tối',3),(4,N'đêm',4),(5,N'sáng',1)
 
-select * from cham_cong
 
 
 ------------xử lí-----------------------------------------------------
@@ -497,7 +456,7 @@ begin
 end
 
 insert into chi_tiet_bang_cong
-values (4,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1)
+values (1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1)
 select * from chi_tiet_bang_cong
 
 
@@ -632,7 +591,7 @@ begin
 	where so_hoa_don=@so_hoa_don
 end
 
-exec up_tien_dich_vu @so_hoa_don = 4
+exec up_tien_dich_vu @so_hoa_don = 2
 select*from hoa_don_chi_tiet
 insert into dich_vu_su_dung
 values (2,1,1)
@@ -705,7 +664,7 @@ end
 select*from tai_khoan
 select * from nap_the
 insert into nap_the
-values(6,10000000,'02/10/2023')
+values(6,10000000,'09/01/2023')
 
 
 --------------tra tien cho cái tiền net và tiền dịch vụ---------
@@ -733,8 +692,8 @@ begin
 end
 
 exec tra_tien @so_hoa_don = 2
-
-
+select * from tai_khoan
+select * from hoa_don_chi_tiet
 
 -------------------------nhan vien lap hoa don--------------------
 
@@ -757,7 +716,16 @@ begin
 end
 
 insert into lap
-values (4,6,'04/10/2023')
+values (1,1,'09/01/2023')
+insert into lap
+values (2,2,'09/01/2023')
+insert into lap
+values (3,3,'09/01/2023')
+insert into lap
+values (4,4,'09/01/2023')
+insert into lap
+values (5,5,'10/01/2023')
+
 select*from lap
 
 -----------------------tinh tong doanh thu trong ngay--------------------
@@ -804,9 +772,40 @@ begin
 	
 end
 
-exec tong_doanh_thu @ngay_tinh = '03/10/2023'
+exec tong_doanh_thu @ngay_tinh = '09/01/2023'
 
+
+select * from hoa_don_chi_tiet
 select sum(tien_net_1) from hoa_don_chi_tiet join lap on hoa_don_chi_tiet.so_hoa_don=lap.so_hoa_don where lap.ngay_lap_hoa_don='02/10/2023'
 select sum(tien_dich_vu_1) from hoa_don_chi_tiet join lap on hoa_don_chi_tiet.so_hoa_don=lap.so_hoa_don where lap.ngay_lap_hoa_don='02/10/2023'
 select sum(so_tien_nap) from nap_the where nap_the.ngay_nap = '02/10/2023'
 select*from  hoa_don_chi_tiet join lap on hoa_don_chi_tiet.so_hoa_don=lap.so_hoa_don where lap.ngay_lap_hoa_don='02/10/2023'
+
+
+------------------------cap nhat cai hieu suat-----------------
+
+create or alter proc Kiem_tra_may
+@ma_may int
+as 
+begin
+	declare @hieu_suat_da_dung int=(select hieu_suat from may_tinh where ma_may=@ma_may)
+	if @hieu_suat_da_dung >=75 
+		begin 
+			print('di kiem tra lai may')
+		end
+	else 
+		begin
+			print('may binh thuong')
+		end
+end
+exec Kiem_tra_may @ma_may=1
+
+
+
+
+
+
+
+insert into quan_li
+values(1,1,'01/10/2023',N'hỏng')
+select * from quan_li
