@@ -580,33 +580,46 @@ create or alter proc up_tien_dich_vu
 @so_hoa_don int
 as
 begin
-	update hoa_don_chi_tiet
-	set
-	tien_dich_vu_1=(select sum(dich_vu.gia_niem_yet*dich_vu_su_dung.so_luong) as tong_tien_dich_vu 
+	declare @tong_tien_dich_vu float= (select sum(dich_vu.gia_niem_yet*dich_vu_su_dung.so_luong) as tong_tien_dich_vu 
 	from (dich_vu_su_dung join dich_vu on dich_vu_su_dung.ma_dich_vu=dich_vu.ma_dich_vu)
 		join hoa_don_chi_tiet on hoa_don_chi_tiet.so_hoa_don=dich_vu_su_dung.so_hoa_don
 	where dich_vu_su_dung.so_hoa_don = @so_hoa_don
-	group by dich_vu_su_dung.so_hoa_don
-	)
+	group by dich_vu_su_dung.so_hoa_don)
+
+	if @tong_tien_dich_vu is null
+		begin
+			set @tong_tien_dich_vu=0
+		end
+	update hoa_don_chi_tiet
+	set
+	tien_dich_vu_1=@tong_tien_dich_vu
 	where so_hoa_don=@so_hoa_don
 end
 
 exec up_tien_dich_vu @so_hoa_don = 2
+exec up_tien_dich_vu @so_hoa_don = 1
+exec up_tien_dich_vu @so_hoa_don = 3
 select*from hoa_don_chi_tiet
 insert into dich_vu_su_dung
-values (2,1,1)
+values (2,2,1)
 
 ----------------------------------------TINH TONG HOA DON-----------------------------------------
 
 create or alter proc tinh_tong_hoa_don
-
+@so_hoa_don int
 as 
 begin
-	select*,(hoa_don_chi_tiet.tien_net_1+hoa_don_chi_tiet.tien_dich_vu_1+hoa_don_chi_tiet.tien_nap_vao_tai_khoan) as tong_tien_hoa_don from hoa_don_chi_tiet
+	declare @tong_tien_dich_vu float = (select (hoa_don_chi_tiet.tien_dich_vu_1) from hoa_don_chi_tiet where hoa_don_chi_tiet.so_hoa_don=@so_hoa_don)
+	if @tong_tien_dich_vu is null
+		begin
+			set @tong_tien_dich_vu =0
+		end
+	select *,(hoa_don_chi_tiet.tien_net_1+@tong_tien_dich_vu) as tong_tien_hoa_don from hoa_don_chi_tiet where hoa_don_chi_tiet.so_hoa_don=@so_hoa_don
 
 end
 
-exec tinh_tong_hoa_don
+exec tinh_tong_hoa_don @so_hoa_don=2
+
 
 --------------------------------------in hoa don theo ma hoa don (chay sau cai nap the)----------------------
 create or alter proc hien_hoa_don
@@ -741,7 +754,7 @@ begin
 	declare @tien_nap_the float =(select sum(so_tien_nap) from nap_the where nap_the.ngay_nap = @ngay_tinh)
 	declare @tong_tien float = 0;
 	
-	if @tien_net_1 = NULL
+	if @tien_net_1 is null
 		begin
 			set @tong_tien=@tong_tien+0
 		end
@@ -750,7 +763,7 @@ begin
 			set @tong_tien=@tong_tien+@tien_net_1
 		end
 
-	if @tien_dich_vu_1 = NULL
+	if @tien_dich_vu_1 is null
 		begin
 			set @tong_tien = @tong_tien
 		end
